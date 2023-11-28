@@ -6,6 +6,65 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
     <body>
-    <!--Add a registration form here -->
+        <nav class="navbar navbar-light bg-light">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="./about">Dealership Review</a>
+                </div>
+                <ul class="nav navbar-nav navbar-right">
+                    {% if user.is_authenticated %}
+                    <li>
+                        <a class="btn btn-link" href="#">{{ user.first_name }}({{ user.username }})</a>
+                        <a href="{% url 'djangoapp:logout' %}">Logout</a>
+                    </li>
+                    {% else %}
+                    <li>
+                        <form action="{% url 'djangoapp:login' %}"  method="post">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Username" name="username" >
+                                <input type="password" class="form-control" placeholder="Password" name="psw" >
+                                <button class="btn btn-primary" type="submit">Login</button>
+                                <a class="btn btn-link" href="{% url 'djangoapp:registration' %}">Sign Up</a>
+                            </div>
+                        </form>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+        <section class="h-100 h-custom" style="background-color: #8fc4b7;">
+            <div class="container py-5 h-100">
+              <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col-lg-8 col-xl-6">
+                  <div class="card rounded-3">
+                    <div class="card-body p-4 p-md-5">
+                      <h3 class="pb-2 pb-md-0 px-md-2">Sign Up</h3>
+                        <hr/>
+                      <form class="px-md-2" action="{% url 'djangoapp:registration' %}" method="post">
+                        {% csrf_token %}
+                        <div class="form-outline mb-4">
+                          <label class="form-label font-weight-bold" for="username">User Name</label>
+                          <input type="text" id="username" name="username" class="form-control" required /><br/>
+                          <label class="form-label font-weight-bold" for="firstname">First Name</label>
+                          <input type="text" id="firstname" name="firstname" class="form-control" required /><br />
+                          <label class="form-label font-weight-bold" for="lastname">Last Name</label>
+                          <input type="text" id="lastname" name="lastname" class="form-control" required /><br />
+                          <label class="form-label font-weight-bold" for="pass">Password</label>
+                          <input type="password" id="psw" name="psw" class="form-control" required />
+                        </div>
+                        {% if message %}
+                        <div class="alert alert-warning"> 
+                            {{ message }}
+                        </div>
+                        {% endif %}
+                        <button type="submit" class="btn btn-primary btn-md mb-1">Sign Up</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
     </body>
 </html>

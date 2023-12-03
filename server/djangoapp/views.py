@@ -2,8 +2,8 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render, redirect
-# from .models import related models
-# from .restapis import related methods
+from .models import CarDealer, CarModel
+from .restapis import get_dealers_from_cf, get_dealer_reviews_from_cf, post_request, get_dealer_by_id_from_cf, get_dealers_by_state
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from datetime import datetime
@@ -93,54 +93,73 @@ def registration_request(request):
 
 # Update the `get_dealerships` view to render the index page with a list of dealerships
 def get_dealerships(request):
+    context = {}
     if request.method == "GET":
-        context = {}
-        url = "https://us-south.functions.appdomain.cloud/api/v1/web/430e6953-6eec-4c27-a80f-fa2222897846/dealership-package/get-dealership"
+        url = "https://remis1889-3000.theiadocker-2-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/dealerships/get"
+        # Get dealers from the URL
         dealerships = get_dealers_from_cf(url)
-        dealer_names = ' '.join([dealer.short_name for dealer in dealerships])
-        return HttpResponse(dealer_names)
+        context["dealership_list"] = dealerships
+
+        return render(request, 'djangoapp/index.html', context)
 
 def get_dealer_details(request, dealer_id):
     if request.method == "GET":
         context = {}
-        url = "https://us-south.functions.appdomain.cloud/api/v1/web/430e6953-6eec-4c27-a80f-fa2222897846/dealership-package/get-review"
-        reviews = get_dealer_reviews_from_cf(url, dealer_id)
-        context["reviews"] = reviews
-        dealer = get_dealer_from_cf_by_id("https://us-south.functions.appdomain.cloud/api/v1/web/430e6953-6eec-4c27-a80f-fa2222897846/dealership-package/get-dealership", dealer_id)
+        context["dealer_id"] = dealer_id
+
+        review_url = "https://remis1889-5000.theiadocker-2-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/get_reviews"
+        reviews = get_dealer_reviews_from_cf(review_url, dealer_id)
+        context["reviews_list"] = reviews
+
+        dealer_url = "https://remis1889-3000.theiadocker-2-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/dealerships/get"
+        dealer = get_dealer_by_id_from_cf(dealer_url, dealer_id=dealer_id)
         context["dealer"] = dealer
+
         return render(request, 'djangoapp/dealer_details.html', context)
 
 def add_review(request, dealer_id):
-    context = {}
-    if request.method == "GET":
-        url = "https://us-south.functions.appdomain.cloud/api/v1/web/430e6953-6eec-4c27-a80f-fa2222897846/dealership-package/get-review"
-        dealer = get_dealer_from_cf_by_id(url, dealer_id)
-        cars = CarModel.objects.filter(dealer_id=dealer_id)
-        context["cars"] = cars
-        context["dealer"] = dealer
-        return render(request, 'djangoapp/add_review.html', context)
+    if request.user.is_authenticated:
+        if request.method == "GET":
+            context = {}
+            cars = list(CarModel.objects.filter(dealer_id=dealer_id))
+            for car in cars:
+                car.year = car.year.strftime("%Y")
+            context["cars"] = cars
 
-    if request.method == "POST":
-        url = "https://us-south.functions.appdomain.cloud/api/v1/web/430e6953-6eec-4c27-a80f-fa2222897846/dealership-package/post-review"
-        if 'purchasecheck' in request.POST:
-            was_purchased = True
-        else:
-            was_purchased = False
-        cars = CarModel.objects.filter(dealer_id=dealer_id)
-        for car in cars:
-            if car.id == int(request.POST['car']):
-                review_car = car  
-        review = {}
-        review["time"] = datetime.utcnow().isoformat()
-        review["name"] = request.POST['name']
-        review["dealership"] = dealer_id
-        review["review"] = request.POST['content']
-        review["purchase"] = was_purchased
-        review["purchase_date"] = request.POST['purchasedate']
-        review["car_make"] = review_car.make.name
-        review["car_model"] = review_car.name
-        review["car_year"] = review_car.year.strftime("%Y")
-        json_payload = {}
-        json_payload["review"] = review
-        response = post_request(url, json_payload)
+            dealer_url = "https://remis1889-3000.theiadocker-2-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/dealerships/get"
+            dealer = get_dealer_by_id_from_cf(dealer_url, dealer_id=dealer_id)  
+
+            context["dealer"] = dealer
+            context["dealer_id"] = dealer_id
+
+            return render(request, "djangoapp/add_review.html", context)
+
+        if request.method == "POST":
+            user = request.user
+            review = {}
+            review["id"] = dealer_id
+            review["time"] = datetime.utcnow().isoformat()
+            review["name"] = f"{user.first_name} {user.last_name}"
+            review["dealership"] = dealer_id
+            review["review"] = request.POST['content']
+            checked = request.POST.get('purchasecheck', False)
+
+            if checked == "on":
+                checked = True
+            review["purchase"] = checked
+            review["purchase_date"] = request.POST['purchasedate']
+            car_make, car_model, car_year = request.POST['car_details'].split("-")
+            review["car_make"] = car_make
+            review["car_model"] = car_model
+            review["car_year"] = car_year
+            url = "https://remis1889-5000.theiadocker-2-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/post_review"
+            json_payload = {}
+            json_payload["review"] = review
+            post_request(url, json_payload, dealerId=dealer_id)
+            print("Review submitted.")
+
+            return redirect("djangoapp:dealer_details", dealer_id=dealer_id)
+            
+    else: 
+        print("User is not authenticated")
         return redirect("djangoapp:dealer_details", dealer_id=dealer_id)

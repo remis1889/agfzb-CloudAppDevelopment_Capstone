@@ -6,16 +6,17 @@ from .models import CarMake, CarModel
 
 class CarModelInline(admin.StackedInline):
     model = CarModel
-    extra = 6
 
 class CarModelAdmin(admin.ModelAdmin):
-    list_display = ['name',  'dealer_id', 'car_type', 'year']
-    search_fields = ['name']
+    llist_display = ('model_name', 'car_type')
+    list_filter = ['car_type']
+    search_fields = ['model_name']
 
 class CarMakeAdmin(admin.ModelAdmin):
     inlines = [CarModelInline]
-    list_display = ['name', 'description']
-    search_fields = ['name']
+    list_display = ('make_name', 'country')
+    list_filter = ['country']
+    search_fields = ['make_name', 'country']
 
 # Register models here
 admin.site.register(CarModel, CarModelAdmin)

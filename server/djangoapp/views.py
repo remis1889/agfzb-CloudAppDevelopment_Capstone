@@ -95,7 +95,7 @@ def registration_request(request):
 def get_dealerships(request):
     context = {}
     if request.method == "GET":
-        url = "https://remis1889-3000.theiadocker-2-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/dealerships/get"
+        url = "https://remis1889-3000.theiadocker-1-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/dealerships/get"
         # Get dealers from the URL
         dealerships = get_dealers_from_cf(url)
         context["dealership_list"] = dealerships
@@ -107,11 +107,11 @@ def get_dealer_details(request, dealer_id):
         context = {}
         context["dealer_id"] = dealer_id
 
-        review_url = "https://remis1889-5000.theiadocker-2-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/get_reviews"
+        review_url = "https://remis1889-5000.theiadocker-1-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/get_reviews"
         reviews = get_dealer_reviews_from_cf(review_url, dealer_id)
         context["reviews_list"] = reviews
 
-        dealer_url = "https://remis1889-3000.theiadocker-2-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/dealerships/get"
+        dealer_url = "https://remis1889-3000.theiadocker-1-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/dealerships/get"
         dealer = get_dealer_by_id_from_cf(dealer_url, dealer_id=dealer_id)
         context["dealer"] = dealer
 
@@ -126,7 +126,7 @@ def add_review(request, dealer_id):
                 car.year = car.year.strftime("%Y")
             context["cars"] = cars
 
-            dealer_url = "https://remis1889-3000.theiadocker-2-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/dealerships/get"
+            dealer_url = "https://remis1889-3000.theiadocker-1-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/dealerships/get"
             dealer = get_dealer_by_id_from_cf(dealer_url, dealer_id=dealer_id)  
 
             context["dealer"] = dealer
@@ -152,7 +152,7 @@ def add_review(request, dealer_id):
             review["car_make"] = car_make
             review["car_model"] = car_model
             review["car_year"] = car_year
-            url = "https://remis1889-5000.theiadocker-2-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/post_review"
+            url = "https://remis1889-5000.theiadocker-1-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/post_review"
             json_payload = {}
             json_payload["review"] = review
             post_request(url, json_payload, dealerId=dealer_id)

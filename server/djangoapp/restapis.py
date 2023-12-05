@@ -100,12 +100,12 @@ def get_dealers_by_state(url, state, **kwargs):
             
 # Create an `analyze_review_sentiments` method to call Watson NLU and analyze text
 def analyze_review_sentiments(dealerreview):
-    url = "https://api.jp-tok.natural-language-understanding.watson.cloud.ibm.com/instances/f5187a0b-bb6f-4d14-ac90-4e7143a4b318"
-    api_key = "A_sC8S6T-19EqVP35HZR-IN0yde78-eYqI40CzsaiIjw"
+    url = "https://api.au-syd.natural-language-understanding.watson.cloud.ibm.com/instances/bf4df508-a5d9-46f0-b46e-f34f3f22c257"
+    api_key = "hL_SKFGyPkv6-BRXH5LBtKjXRNd4euX4ky5YkDjCZdxi"
     authenticator = IAMAuthenticator(api_key)
     natural_language_understanding = NaturalLanguageUnderstandingV1(version='2022-04-07',authenticator=authenticator)
     natural_language_understanding.set_service_url(url)
-    response = natural_language_understanding.analyze( text=dealerreview,features=Features(sentiment=SentimentOptions(targets=[dealerreview]))).get_result()
+    response = natural_language_understanding.analyze(text=dealerreview,language='en', features=Features(sentiment=SentimentOptions(targets=[dealerreview]))).get_result()
     label=json.dumps(response, indent=2)
     label = response['sentiment']['document']['label']
     

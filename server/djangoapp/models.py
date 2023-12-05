@@ -5,14 +5,12 @@ from django.utils.timezone import now
 # Create your models here.
 
 class CarMake(models.Model):
-    name = models.CharField(null=False, max_length=50)
-    description = models.CharField(max_length=1000)
-    country = models.CharField(max_length=50)
+    make_name = models.CharField(null=False, max_length=100)
+    description = models.TextField()
 
     def __str__(self):
         return "Name: " + self.make_name + "," + \
-            "Description: " + self.description + "," + \
-            "Country: " + self.country
+            "Description: " + self.description
 
 
 class CarModel(models.Model):
